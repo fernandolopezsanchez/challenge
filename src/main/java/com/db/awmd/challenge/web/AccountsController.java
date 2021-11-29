@@ -59,6 +59,7 @@ public class AccountsController {
 	  
 	  List<Account> accountList = this.accountsService.transferAmount(transaction);
 	  
+	  //Notification sent to both account holders with a message containing amount and new balance
 	  if (!accountList.isEmpty()) {		  
 		  for(Account account: accountList) {
 			  notificationService.notifyAboutTransfer(account, "Amount transferred: " + transaction.getAmount() + " Actual Balance: " + account.getBalance());			  

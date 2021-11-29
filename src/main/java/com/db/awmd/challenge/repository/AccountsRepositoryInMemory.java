@@ -40,20 +40,25 @@ public class AccountsRepositoryInMemory implements AccountsRepository {
 	
 	List<Account> accountList = new ArrayList<>();  
 	Account accountFrom = accounts.get(transaction.getFromAccountId());
+	//Check enough fund in source account to avoid negative balance
 	if(accountFrom.getBalance().compareTo(transaction.getAmount())<0) {		
 		throw new IllegalArgumentException(
-	      "Account id " + accountFrom.getAccountId() + " NOT ENOUGH BALANCE");        
+	      "Account id " + accountFrom.getAccountId() + " Not enough Fund from source Account");        
 	}
 		
-	Account accountTo = accounts.get(transaction.getToAccountId());	
-	BigDecimal balanceFrom = accountFrom.getBalance().subtract(transaction.getAmount()); //withdrawAmount	
-	BigDecimal balanceTo = accountTo.getBalance().add(transaction.getAmount()); //addAmount
+	Account accountTo = accounts.get(transaction.getToAccountId());
+	
+	//Withdraw amount from source Account
+	BigDecimal balanceFrom = accountFrom.getBalance().subtract(transaction.getAmount());
+	//Add amount in the destination Account
+	BigDecimal balanceTo = accountTo.getBalance().add(transaction.getAmount()); 
 	
 	accountFrom.setBalance(balanceFrom);
 	accountTo.setBalance(balanceTo);	
 	accountList.add(accountFrom);
 	accountList.add(accountTo);	
 	  
+	//Return both accounts with the new balances
 	return accountList;
   }
 

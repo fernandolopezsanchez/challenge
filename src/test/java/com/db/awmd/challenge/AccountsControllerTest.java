@@ -51,7 +51,7 @@ public class AccountsControllerTest {
     assertThat(account.getAccountId()).isEqualTo("Id-123");
     assertThat(account.getBalance()).isEqualByComparingTo("1000");
   }
-
+  
   @Test
   public void createDuplicateAccount() throws Exception {
     this.mockMvc.perform(post("/v1/accounts").contentType(MediaType.APPLICATION_JSON)
@@ -103,8 +103,24 @@ public class AccountsControllerTest {
   }
   
   @Test
-  public void transferFund() throws Exception {
-	  
+  public void transferFundOk() throws Exception {
+	//Given  
+	Account account01 = new Account("Id-111");
+	account01.setBalance(new BigDecimal(1000));
+	this.accountsService.createAccount(account01);
+		    
+	Account account02 = new Account("Id-222");
+	account02.setBalance(new BigDecimal(800));
+	this.accountsService.createAccount(account02);
+	
+	//When
+    this.mockMvc.perform(post("/v1/accounts/transaction").contentType(MediaType.APPLICATION_JSON)
+      .content("{\"fromAccountId\":\"Id-111\",\"toAccountId\":\"Id-222\",\"amount\":200}")).andExpect(status().isOk());	
+  }
+  
+  @Test
+  public void transferFundObtainNewBalance() throws Exception {
+	//Given  
 	Account account01 = new Account("Id-111");
 	account01.setBalance(new BigDecimal(1000));
 	this.accountsService.createAccount(account01);
@@ -113,8 +129,36 @@ public class AccountsControllerTest {
 	account02.setBalance(new BigDecimal(800));
 	this.accountsService.createAccount(account02); 
 	  
+	//When
     this.mockMvc.perform(post("/v1/accounts/transaction").contentType(MediaType.APPLICATION_JSON)
       .content("{\"fromAccountId\":\"Id-111\",\"toAccountId\":\"Id-222\",\"amount\":300}")).andExpect(status().isOk());
 
+    //Then new balance
+    assertThat(account01.getBalance()).isEqualTo("700");
+    assertThat(account02.getBalance()).isEqualTo("1100");
+    
+  }  
+  
+  @Test
+  public void transferFundNoFromAccountId() throws Exception {
+    this.mockMvc.perform(post("/v1/accounts/transaction").contentType(MediaType.APPLICATION_JSON)
+      .content("{\"toAccountId\":\"Id-222\",\"amount\":300}")).andExpect(status().isBadRequest());
+
   }
+  
+  @Test
+  public void transferFundNoToAccountId() throws Exception {
+	this.mockMvc.perform(post("/v1/accounts/transaction").contentType(MediaType.APPLICATION_JSON)
+      .content("{\"fromAccountId\":\"Id-111\",\"amount\":300}")).andExpect(status().isBadRequest());
+
+  }
+  
+  @Test
+  public void transferFundNoAmount() throws Exception {
+	this.mockMvc.perform(post("/v1/accounts/transaction").contentType(MediaType.APPLICATION_JSON)
+      .content("{\"fromAccountId\":\"Id-111\",\"toAccountId\":\"Id-222\"")).andExpect(status().isBadRequest());
+
+  }
+  
+  
 }

@@ -51,7 +51,7 @@ public class AccountsServiceTest {
   @Test
   public void transferAmount() throws Exception {
     //Given
-	UserTransaction userTransaction = new com.db.awmd.challenge.domain.UserTransaction("Id-111", "Id-222", new BigDecimal(300));
+	UserTransaction userTransaction = new UserTransaction("Id-111", "Id-222", new BigDecimal(300));
 	  
 	Account account01 = new Account("Id-111");
     account01.setBalance(new BigDecimal(1000));
@@ -70,20 +70,20 @@ public class AccountsServiceTest {
   }
   
   @Test
-  public void transferAmount_negativeBalance() throws Exception {
+  public void transferAmount_failsNotEnoughFund() throws Exception {
     //Given
-	UserTransaction userTransaction = new com.db.awmd.challenge.domain.UserTransaction("Id-122", "Id-233", new BigDecimal(300));
+	UserTransaction userTransaction = new UserTransaction("Id-122", "Id-233", new BigDecimal(300));
 	  
 	Account account01 = new Account("Id-122");
-    account01.setBalance(new BigDecimal(100));
+    account01.setBalance(new BigDecimal(200));
     this.accountsService.createAccount(account01);  
     
     //When 
     try {
     this.accountsService.transferAmount(userTransaction);
-    fail("Should have failed when the account to end up with negative balance");
+    fail("Should have failed when the amount is greater than the balance");
     } catch (IllegalArgumentException ex) {
-      assertThat(ex.getMessage()).isEqualTo("Account id " + account01.getAccountId() + " NOT ENOUGH BALANCE");
+      assertThat(ex.getMessage()).isEqualTo("Account id " + account01.getAccountId() + " Not enough Fund from source Account");
       
     }
     
